@@ -3,11 +3,12 @@ name: Terraform Deploy GCP VM
 on:
   push:
     branches:
-      - main
+      - master   # ✅ match your default branch
+  workflow_dispatch:  # ✅ allow manual trigger from Actions tab
 
 jobs:
-  terraform:
-    name: Terraform Apply
+  terraform-plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
 
     env:
@@ -36,8 +37,50 @@ jobs:
 
       - name: Terraform Plan
         working-directory: gcp-vm-creation
-        run: terraform plan
+        run: terraform plan -out=tfplan
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: gcp-vm-creation/tfplan
+
+  terraform-apply:
+    name: Terraform Apply
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    environment: production   # ✅ requires manual approval
+
+    env:
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.5
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure GCP Project
+        run: gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Terraform Init
+        working-directory: gcp-vm-creation
+        run: terraform init
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: gcp-vm-creation
 
       - name: Terraform Apply
         working-directory: gcp-vm-creation
-        run: terraform apply -auto-approve
+        run: terraform apply tfplan
