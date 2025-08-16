@@ -10,5 +10,5 @@ variable "region" {
 
 variable "zone" {
   type    = string
-  default = "us-central1-a"
+  default = "us-west1-b"
 }
