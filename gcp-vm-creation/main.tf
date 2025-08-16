@@ -37,7 +37,4 @@ resource "google_compute_instance" "vm" {
   metadata_startup_script = var.startup_script
 }
 
-output "vm_external_ip" {
-  value = google_compute_instance.vm.network_interface[0].access_config[0].nat_ip
-}
 
