@@ -10,29 +10,34 @@ terraform {
 
 provider "google" {
   project = var.project_id
-  region  = var.region
-  # Credentials will be picked up via ADC or GOOGLE_APPLICATION_CREDENTIALS
+  region  = substr(var.zone, 0, length(var.zone) - 2) # extract region from zone
 }
 
 resource "google_compute_instance" "vm" {
   name         = "tf-vm"
-  machine_type = "e2-small"
+  machine_type = var.machine_type
   zone         = var.zone
 
   boot_disk {
     initialize_params {
       image = "debian-cloud/debian-12"
-      size  = 10
     }
+    # Disk labels
+    labels = var.tags
   }
 
   network_interface {
-    network = "default"
-    access_config {} # assign external IP
+    network       = "default"
+    access_config {}
   }
 
-  metadata_startup_script = <<-EOT
-    #! /bin/bash
-    echo "Hello from Terraform-provisioned VM" > /var/tmp/hello_tf.txt
-  EOT
+  # VM instance labels
+  labels = var.tags
+
+  metadata_startup_script = var.startup_script
 }
+
+output "vm_external_ip" {
+  value = google_compute_instance.vm.network_interface[0].access_config[0].nat_ip
+}
+
