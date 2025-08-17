@@ -1,16 +1,7 @@
-terraform {
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 4.0"
-    }
-  }
-  required_version = ">= 1.0.0"
-}
-
 provider "google" {
-  project = var.project_id
-  region  = substr(var.zone, 0, length(var.zone) - 2) # extract region from zone
+  project     = var.project_id
+  region      = substr(var.zone, 0, length(var.zone)-2)
+  credentials = file(var.credentials_file)
 }
 
 resource "google_compute_instance" "vm" {
@@ -22,8 +13,6 @@ resource "google_compute_instance" "vm" {
     initialize_params {
       image = "debian-cloud/debian-12"
     }
-    # Disk labels
-    labels = var.tags
   }
 
   network_interface {
@@ -31,10 +20,7 @@ resource "google_compute_instance" "vm" {
     access_config {}
   }
 
-  # VM instance labels
+  metadata_startup_script = file("connectdirect_installer.sh")
+
   labels = var.tags
-
-  metadata_startup_script = var.startup_script
 }
-
-

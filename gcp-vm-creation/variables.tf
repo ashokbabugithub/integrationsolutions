@@ -1,35 +1,41 @@
 variable "project_id" {
-  description = "GCP Project ID"
-  type        = string
+  type = string
 }
 
 variable "zone" {
-  description = "GCP Zone for VM"
-  type        = string
-  default     = "australia-southeast1-b"
+  type    = string
+  default = "us-central1-a"
 }
 
 variable "machine_type" {
-  description = "Machine type for VM"
-  type        = string
-  default     = "e2-small"
+  type    = string
+  default = "e2-small"
 }
 
 variable "tags" {
-  description = "Map of tags to apply to VM and disks"
-  type        = map(string)
+  type = map(string)
   default = {
-    environment    = "dev"
-    application    = "gcp-vm-creation"
-    billing_number = "12345"
+    environment      = "dev"
+    application_name = "connectdirect"
+    billing_number   = "12345"
   }
 }
 
-variable "startup_script" {
-  description = "Startup script for VM"
-  type        = string
-  default     = <<-EOT
-    #! /bin/bash
-    echo "Hello from Terraform VM" > /var/tmp/hello.txt
-  EOT
+variable "ssl_cert_remote_path" {
+  type    = string
+  default = "/app/connectdirect/ndm/secure+/certificates"
+}
+
+variable "ssl_cert_secrets" {
+  type = map(string)
+  default = {
+    "app_cert.pem"   = "connectdirect-app-cert"
+    "app_key.pem"    = "connectdirect-app-key"
+    "ca_bundle.crt"  = "connectdirect-ca-bundle"
+  }
+}
+
+variable "credentials_file" {
+  type = string
+  default = "path/to/service-account.json"
 }
