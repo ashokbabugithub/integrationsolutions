@@ -1,0 +1,49 @@
+name: Terraform Configuration Updates
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform-config:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [gcp-vm-creation]
+
+    env:
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.12.2
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure GCP Project
+        run: gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Terraform Init
+        working-directory: ${{ matrix.project }}
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ${{ matrix.project }}
+        run: terraform plan -out=tfplan
+
+      - name: Fetch SSL Certificates from Secret Manager
+        run: |
+          VM_IP=$(terraform output -raw vm_external_ip)
+          mkdir -p temp_certs
+          for FILE in app_cert.pem app_key.pem ca_bundle.crt; do
+            gcloud secrets versions access latest --secret=$FILE > temp_certs/$FILE
+          done
+          scp -o StrictHostKeyChecking=no -i ${{ secrets.SSH_KEY }} -r temp_certs/* ubuntu@$VM_IP:/app/connectdirect/ndm/secure+/certificates
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_KEY }} ubuntu@$VM_IP "chmod 600 /app/connectdirect/ndm/secure+/certificates/*"

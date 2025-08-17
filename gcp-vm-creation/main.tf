@@ -1,7 +1,7 @@
 provider "google" {
   project     = var.project_id
   region      = substr(var.zone, 0, length(var.zone)-2)
-  credentials = file(var.credentials_file)
+  #credentials = file(var.credentials_file)
 }
 
 resource "google_compute_instance" "vm" {
