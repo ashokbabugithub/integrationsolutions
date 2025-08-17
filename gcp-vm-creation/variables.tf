@@ -4,7 +4,7 @@ variable "project_id" {
 
 variable "zone" {
   type    = string
-  default = "us-central1-a"
+  default = "us-west1-b"
 }
 
 variable "machine_type" {
