@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 name: Terraform Configuration Updates
 
 on:
@@ -98,4 +97,3 @@ jobs:
           done
           scp -o StrictHostKeyChecking=no -i ${{ secrets.SSH_KEY }} -r temp_certs/* ubuntu@$VM_IP:/app/connectdirect/ndm/secure+/certificates
           ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_KEY }} ubuntu@$VM_IP "chmod 600 /app/connectdirect/ndm/secure+/certificates/*"
->>>>>>> 45b1c2af500dd096b8377e66c2109fffe22e3c66
